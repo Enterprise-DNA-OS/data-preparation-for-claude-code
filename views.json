@@ -1,13 +1,29 @@
 [
   {
     "name": "week",
-    "title": "This week",
-    "subtitle": "Data Preparation for Claude Code: what needs attention, rendered by npm run view",
+    "title": "Data preparation week",
     "sections": [
       {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
+        "title": "Source freshness",
+        "sql": "select code,name,owner,row_count,freshness from dataset_health order by code"
+      },
+      {
+        "title": "Preparation runs",
+        "sql": "select code,owner,status,freshness,input_count,output_count,error from run_health order by code"
+      },
+      {
+        "title": "Review actions",
+        "sql": "select title,owner,due,days_overdue from attention_queue order by due,title"
+      }
+    ]
+  },
+  {
+    "name": "run-history",
+    "title": "Run history",
+    "sections": [
+      {
+        "title": "Results and exceptions",
+        "sql": "select p.code,r.status,r.input_count,r.output_count,r.error,r.created_at from runs r join pipelines p on p.id=r.pipeline_id order by r.created_at desc"
       }
     ]
   }

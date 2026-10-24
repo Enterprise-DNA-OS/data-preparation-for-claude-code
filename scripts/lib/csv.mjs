@@ -18,7 +18,7 @@ export function parseCsv(input, { allowDuplicate = [] } = {}) {
  }
  if(state==='quoted')throw Error('Malformed CSV: unclosed quoted field');
  if(field!==''||row.length||state==='closed')pushRow();
- const nonempty=rows.filter(r=>r.some(v=>v.trim()!==''));if(!nonempty.length)return [];
+ const nonempty=rows.filter(r=>r.length>1||r[0].trim()!=='');if(!nonempty.length)return [];
  const counts=new Map();
  const header=nonempty.shift().map(h=>{h=h.trim();const key=h.toLowerCase();const n=(counts.get(key)||0)+1;counts.set(key,n);return n>1&&allowDuplicate.some(x=>x.toLowerCase()===key)?`${h} (${n})`:h;});
  if(header.some(h=>!h)||new Set(header.map(h=>h.toLowerCase())).size!==header.length)throw Error('CSV requires unique, nonempty column names');

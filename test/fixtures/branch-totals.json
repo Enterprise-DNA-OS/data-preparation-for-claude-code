@@ -1,0 +1,30 @@
+{
+  "source": "IMPORT",
+  "steps": [
+    {
+      "op": "trim",
+      "fields": [
+        "branch"
+      ]
+    },
+    {
+      "op": "filter",
+      "field": "status",
+      "equals": "complete"
+    },
+    {
+      "op": "dedupe",
+      "fields": [
+        "order_id"
+      ]
+    },
+    {
+      "op": "sum",
+      "group": [
+        "branch"
+      ],
+      "field": "amount",
+      "as": "total"
+    }
+  ]
+}

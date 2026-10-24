@@ -1,11 +1,46 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
+    "name": "run-reconciliation",
+    "title": "Preparation run reconciliation",
+    "for_each": "select r.id,p.code as name from runs r join pipelines p on p.id=r.pipeline_id",
     "file": "name",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      {
+        "title": "Execution evidence",
+        "sql": "select status,actor,version,input_count,output_count,created_at,error from runs where id=$1"
+      },
+      {
+        "title": "Source snapshots",
+        "sql": "select s.key as dataset,s.value as batch from runs r,jsonb_each_text(r.sources)s where r.id=$1"
+      },
+      {
+        "title": "Step counts",
+        "sql": "select step->>'operation' as operation, (step->>'input_rows')::integer as input_rows,(step->>'output_rows')::integer as output_rows from runs r,jsonb_array_elements(r.steps)step where r.id=$1"
+      },
+      {
+        "title": "Prepared records",
+        "sql": "select o.ordinal as output_record,e.key as field,e.value as value,jsonb_array_length(o.lineage) as source_records from output_rows o,jsonb_each_text(o.data)e where o.run_id=$1 order by o.ordinal,e.key"
+      },
+      {
+        "title": "Source row references",
+        "sql": "select ordinal as output_record,string_agg(ref.value, ', ' order by ref.value) as source_references from output_rows o,jsonb_array_elements_text(o.lineage)ref(value) where run_id=$1 group by ordinal order by ordinal"
+      }
+    ]
+  },
+  {
+    "name": "source-register",
+    "title": "Source purpose and retention register",
+    "for_each": "select id,name from datasets",
+    "file": "name",
+    "sections": [
+      {
+        "title": "Data ownership",
+        "sql": "select code,name,owner,purpose,jurisdiction,personal,retention_review,fresh_days from datasets where id=$1"
+      },
+      {
+        "title": "Import evidence",
+        "sql": "select file_name,checksum,row_count,actor,created_at from batches where dataset_id=$1 order by created_at desc"
+      }
     ]
   }
 ]
